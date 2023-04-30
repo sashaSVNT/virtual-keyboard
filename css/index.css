@@ -13,6 +13,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .keyboard {
@@ -43,7 +44,7 @@ button {
   margin-right: 6px;
 }
 
-.space {
+.btn[data-code="Space"] {
   font-size: 0px;
   width: 370px;
 }
@@ -57,7 +58,9 @@ button {
   margin-bottom: 0px;
 }
 
-.big-modifier {
+.btn[data-code="ShiftLeft"],
+.btn[data-code="ShiftRight"],
+.btn[data-code="Enter"] {
   width: 130px;
 }
 
