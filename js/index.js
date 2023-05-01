@@ -4,6 +4,14 @@ keyboard.classList.add('keyboard');
 textarea.classList.add('textarea');
 document.body.append(textarea, keyboard);
 
+textarea.addEventListener("keydown", e => {
+  e.preventDefault();
+});
+
+textarea.addEventListener("keyup", e => {
+  e.preventDefault();
+});
+
 const charCodes = [
   ['Backquote', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0', 'Minus', 'Equal', 'Backspace'],
   ['Tab', 'KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash'],
@@ -40,7 +48,22 @@ function createKeyboard() {
 function handleKeyPress(key, textarea) {
   switch (key) {
     case 'Backspace':
-      textarea.value = textarea.value.slice(0, -1);
+      let cursorStartPosition = textarea.selectionStart;
+      let cursorEndPosition = textarea.selectionEnd;
+      if (cursorStartPosition === cursorEndPosition) {
+        let textBeforeCursor = textarea.value.substring(0, cursorStartPosition - 1);
+        let textAfterCursor = textarea.value.substring(cursorEndPosition);
+        textarea.value = textBeforeCursor + textAfterCursor;
+        textarea.selectionStart = cursorStartPosition - 1;
+        textarea.selectionEnd = cursorStartPosition - 1;
+      }
+      else if (cursorStartPosition !== cursorEndPosition) {
+        let textBeforeCursor = textarea.value.substring(0, cursorStartPosition);
+        let textAfterCursor = textarea.value.substring(cursorEndPosition);
+        textarea.value = textBeforeCursor + textAfterCursor;
+        textarea.selectionStart = cursorStartPosition;
+        textarea.selectionEnd = cursorStartPosition;
+      }
       break;
     case 'CapsLock':
       // toggleCapsLock(textarea);
