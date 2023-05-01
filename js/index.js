@@ -49,9 +49,6 @@ function createKeyboard(keysEnLayout) {
       let key = row[j];
       const keyElement = document.createElement('button');
       keyElement.classList.add('btn');
-      // if (key.length > 1 || key == ' ' || key == '◄' || key == '▼' || key == '►' || key == '▲') {
-      //   keyElement.classList.add('modifier');
-      // }
       keyElement.textContent = key;
       keysRowElement.append(keyElement);
       keyElement.setAttribute('data-code', charCodes[i][j]);
@@ -90,13 +87,40 @@ function handleKeyPress(key, textarea) {
       }
       break;
     case 'Enter':
-      textarea.value += '\n';
+      relatedOnCursor('\n');
+      break;
+    case 'Ctrl':
+      break;
+    case 'Alt':
+      break;
+    case 'Win':
       break;
     case 'Shift':
-      // toggleShift(textarea);
+      if (!isUpperCase) {
+        toggleCapsLock(keysEnLayoutUC);
+        isUpperCase = !isUpperCase;
+      }
+      else if (isUpperCase) {
+        toggleCapsLock(keysEnLayoutLC);
+        isUpperCase = !isUpperCase;
+      }
       break;
     case 'Tab':
-      textarea.value += '\t';
+      relatedOnCursor('\t');
+      break;
+    case '◄':
+      textarea.selectionStart = cursorStartPosition - 1;
+      textarea.selectionEnd = cursorStartPosition - 1;
+      break;
+    case '►':
+      textarea.selectionStart = cursorStartPosition + 1;
+      textarea.selectionEnd = cursorStartPosition + 1;
+      break;
+    case '▼':
+      arrowNav('▼');
+      break;
+    case '▲':
+      arrowNav('▲');
       break;
     default:
       if (cursorStartPosition === cursorEndPosition) {
@@ -117,6 +141,30 @@ function handleKeyPress(key, textarea) {
   }
 }
 
+function relatedOnCursor(value) {
+  let cursorStartPosition = textarea.selectionStart;
+  let cursorEndPosition = textarea.selectionEnd;
+  let textBeforeCursor = textarea.value.substring(0, cursorStartPosition);
+  let textAfterCursor = textarea.value.substring(cursorEndPosition);
+  textarea.value = textBeforeCursor + value + textAfterCursor;
+  textarea.selectionStart = cursorStartPosition + 1;
+  textarea.selectionEnd = cursorStartPosition + 1;
+}
+
+function arrowNav(key) {
+  let cursorStartPosition = textarea.selectionStart;
+  let textBeforeCursor = textarea.value.substring(0, cursorStartPosition);
+  let nextLineValue = textarea.value.indexOf('\n', textBeforeCursor);
+  if (key === '▼') {
+    textarea.selectionStart = cursorStartPosition + nextLineValue;
+    textarea.selectionEnd = cursorStartPosition + nextLineValue;
+  }
+  else {
+    textarea.selectionStart = cursorStartPosition - nextLineValue;
+    textarea.selectionEnd = cursorStartPosition - nextLineValue;
+  }
+}
+
 function toggleCapsLock(keysEnLayout) {
   let mergedArr = keysEnLayout.reduce((acc, val) => acc.concat(val), []);
   let buttons = document.querySelectorAll('.btn');
@@ -128,7 +176,6 @@ function toggleCapsLock(keysEnLayout) {
 document.addEventListener('keydown', e => {
   const { key, code } = e;
   const keyElement = document.querySelector(`button[data-code="${code}"]`);
-  // && key === keyElement.textContent
   if (keyElement) {
     keyElement.classList.add('active');
     handleKeyPress(keyElement.textContent, textarea);
