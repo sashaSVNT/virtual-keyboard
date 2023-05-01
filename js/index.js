@@ -1,3 +1,6 @@
+
+let isUpperCase = false;
+
 const keyboard = document.createElement('div');
 const textarea = document.createElement('textarea');
 keyboard.classList.add('keyboard');
@@ -20,7 +23,7 @@ const charCodes = [
   ['ControlLeft', 'MetaLeft', 'AltLeft', 'Space', 'AltRight', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ControlRight']
 ];
 
-const keysEnLayout = [
+const keysEnLayoutLC = [
   ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace'],
   ['Tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
   ['CapsLock', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 'Enter'],
@@ -28,7 +31,15 @@ const keysEnLayout = [
   ['Ctrl', 'Win', 'Alt', ' ', 'Alt', '◄', '▼', '►', 'Ctrl']
 ];
 
-function createKeyboard() {
+const keysEnLayoutUC = [
+  ['~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 'Backspace'],
+  ['Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '|'],
+  ['CapsLock', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"', 'Enter'],
+  ['Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', '▲', 'Shift'],
+  ['Ctrl', 'Win', 'Alt', ' ', 'Alt', '◄', '▼', '►', 'Ctrl']
+];
+
+function createKeyboard(keysEnLayout) {
   for (let i = 0; i < keysEnLayout.length; i++) {
     const keysRowElement = document.createElement('div');
     keysRowElement.classList.add('keyboard-row');
@@ -38,6 +49,9 @@ function createKeyboard() {
       let key = row[j];
       const keyElement = document.createElement('button');
       keyElement.classList.add('btn');
+      // if (key.length > 1 || key == ' ' || key == '◄' || key == '▼' || key == '►' || key == '▲') {
+      //   keyElement.classList.add('modifier');
+      // }
       keyElement.textContent = key;
       keysRowElement.append(keyElement);
       keyElement.setAttribute('data-code', charCodes[i][j]);
@@ -46,10 +60,10 @@ function createKeyboard() {
 }
 
 function handleKeyPress(key, textarea) {
+  let cursorStartPosition = textarea.selectionStart;
+  let cursorEndPosition = textarea.selectionEnd;
   switch (key) {
     case 'Backspace':
-      let cursorStartPosition = textarea.selectionStart;
-      let cursorEndPosition = textarea.selectionEnd;
       if (cursorStartPosition === cursorEndPosition) {
         let textBeforeCursor = textarea.value.substring(0, cursorStartPosition - 1);
         let textAfterCursor = textarea.value.substring(cursorEndPosition);
@@ -66,7 +80,14 @@ function handleKeyPress(key, textarea) {
       }
       break;
     case 'CapsLock':
-      // toggleCapsLock(textarea);
+      if (!isUpperCase) {
+        toggleCapsLock(keysEnLayoutUC);
+        isUpperCase = !isUpperCase;
+      }
+      else if (isUpperCase) {
+        toggleCapsLock(keysEnLayoutLC);
+        isUpperCase = !isUpperCase;
+      }
       break;
     case 'Enter':
       textarea.value += '\n';
@@ -78,26 +99,49 @@ function handleKeyPress(key, textarea) {
       textarea.value += '\t';
       break;
     default:
-      textarea.value += key;
+      if (cursorStartPosition === cursorEndPosition) {
+        let textBeforeCursor = textarea.value.substring(0, cursorStartPosition);
+        let textAfterCursor = textarea.value.substring(cursorEndPosition);
+        textarea.value = textBeforeCursor + key + textAfterCursor;
+        textarea.selectionStart = cursorStartPosition + 1;
+        textarea.selectionEnd = cursorStartPosition + 1;
+      }
+      else {
+        let textBeforeCursor = textarea.value.substring(0, cursorStartPosition);
+        let textAfterCursor = textarea.value.substring(cursorEndPosition);
+        textarea.value = textBeforeCursor + key + textAfterCursor;
+        textarea.selectionStart = cursorStartPosition + 1;
+        textarea.selectionEnd = cursorStartPosition + 1;
+      }
+      break;
   }
 }
+
+function toggleCapsLock(keysEnLayout) {
+  let mergedArr = keysEnLayout.reduce((acc, val) => acc.concat(val), []);
+  let buttons = document.querySelectorAll('.btn');
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].textContent = mergedArr[i];
+  }
+};
 
 document.addEventListener('keydown', e => {
   const { key, code } = e;
   const keyElement = document.querySelector(`button[data-code="${code}"]`);
-  console.log(code);
-  if (keyElement && key === keyElement.textContent) {
+  // && key === keyElement.textContent
+  if (keyElement) {
     keyElement.classList.add('active');
-    handleKeyPress(key, textarea);
+    handleKeyPress(keyElement.textContent, textarea);
   }
 });
 
 document.addEventListener('keyup', e => {
   const { key, code } = e;
   const keyElement = document.querySelector(`button[data-code="${code}"]`);
-  if (keyElement && key === keyElement.textContent) {
+  if (keyElement) {
     keyElement.classList.remove('active');
   }
 });
 
-createKeyboard();
+createKeyboard(keysEnLayoutLC);
+
